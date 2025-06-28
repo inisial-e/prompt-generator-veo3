@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veo 3 Prompt Generator</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the application */
+        body {
+            font-family: 'Inter', sans-serif; /* Using Inter font as per instructions */
+            background-color: #f0f4f8; /* Light blue-gray background for a clean look */
+            line-height: 1.6; /* Improved readability */
+        }
+        .container {
+            max-width: 900px; /* Max width for content containment */
+            margin: 2rem auto; /* Center the container with vertical margin */
+            background-color: #ffffff; /* White background for the main content area */
+            padding: 2rem; /* Ample padding inside the container */
+            border-radius: 1rem; /* Rounded corners for a softer aesthetic */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+        }
+        .section-title {
+            font-size: 1.75rem; /* Larger title for sections */
+            font-weight: 700; /* Bold text for emphasis */
+            color: #1a202c; /* Dark text color */
+            margin-bottom: 1.5rem; /* Space below the title */
+            border-bottom: 2px solid #e2e8f0; /* Underline for separation */
+            padding-bottom: 0.5rem; /* Padding below the underline */
+        }
+        .input-group label {
+            display: block; /* Labels on their own line */
+            font-weight: 600; /* Semi-bold labels */
+            margin-bottom: 0.5rem; /* Space below labels */
+            color: #4a5568; /* Medium gray text for labels */
+        }
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%; /* Full width for input elements */
+            padding: 0.75rem;
+            border: 1px solid #cbd5e0; /* Light border for inputs */
+            border-radius: 0.5rem; /* Rounded corners for inputs */
+            background-color: #edf2f7; /* Light input background */
+            transition: all 0.2s ease-in-out; /* Smooth transition for focus states */
+        }
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            outline: none; /* Remove default outline */
+            border-color: #6366f1; /* Purple border on focus */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Focus shadow for visual feedback */
+        }
+        .btn {
+            padding: 0.75rem 1.5rem; /* Padding for buttons */
+            border-radius: 0.75rem; /* Rounded corners for buttons */
+            font-weight: 700; /* Bold button text */
+            cursor: pointer; /* Pointer cursor on hover */
+            transition: all 0.2s ease-in-out; /* Smooth transitions for hover effects */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Button shadow */
+        }
+        .btn-primary {
+            background-color: #6366f1; /* Primary purple button color */
+            color: #ffffff; /* White text for primary button */
+        }
+        .btn-primary:hover {
+            background-color: #4f46e5; /* Darker purple on hover */
+        }
+        .btn-secondary {
+            background-color: #e2e8f0; /* Light gray secondary button color */
+            color: #2d3748; /* Dark text for secondary button */
+        }
+        .btn-secondary:hover {
+            background-color: #cbd5e0; /* Darker gray on hover */
+        }
+        .btn-sm {
+            padding: 0.5rem 1rem; /* Smaller padding for small buttons */
+            font-size: 0.875rem; /* Smaller font size for small buttons */
+        }
+        .character-card, .scene-card {
+            background-color: #f7fafc; /* Lighter background for cards */
+            border: 1px solid #e2e8f0; /* Light border for cards */
+            border-radius: 0.75rem; /* Rounded corners for cards */
+            padding: 1.5rem; /* Padding inside cards */
+            margin-bottom: 1.5rem; /* Space between cards */
+            position: relative; /* Needed for absolute positioning of remove button */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* Card shadow */
+        }
+        .remove-btn {
+            position: absolute; /* Position relative to parent card */
+            top: 0.75rem; /* Distance from top */
+            right: 0.75rem; /* Distance from right */
+            background-color: #ef4444; /* Red color for remove button */
+            color: white; /* White text */
+            padding: 0.25rem 0.6rem; /* Padding for button */
+            border-radius: 9999px; /* Fully rounded button */
+            font-size: 0.875rem; /* Font size */
+            cursor: pointer; /* Pointer cursor */
+            transition: background-color 0.2s ease-in-out; /* Smooth transition */
+            z-index: 10; /* Ensure it's above other elements */
+        }
+        .remove-btn:hover {
+            background-color: #dc2626; /* Darker red on hover */
+        }
+        .remove-btn-small {
+            position: absolute; /* Position relative to parent dialog entry */
+            top: 0.25rem; /* Distance from top */
+            right: 0.25rem; /* Distance from right */
+            background-color: #ef4444; /* Red color for small remove button */
+            color: white; /* White text */
+            padding: 0.1rem 0.4rem; /* Smaller padding */
+            border-radius: 9999px; /* Fully rounded */
+            font-size: 0.75rem; /* Smaller font size */
+            cursor: pointer; /* Pointer cursor */
+            transition: background-color 0.2s ease-in-out; /* Smooth transition */
+            z-index: 10; /* Ensure it's above other elements */
+        }
+        .remove-btn-small:hover {
+            background-color: #dc2626; /* Darker red on hover */
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3; /* Light grey border */
+            border-top: 4px solid #6366f1; /* Purple top border for animation */
+            border-radius: 50%; /* Make it circular */
+            width: 24px; /* Width of spinner */
+            height: 24px; /* Height of spinner */
+            animation: spin 1s linear infinite; /* Spin animation */
+            display: inline-block; /* Display inline with text */
+            vertical-align: middle; /* Align vertically with text */
+            margin-left: 10px; /* Space from text */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); } /* Start rotation */
+            100% { transform: rotate(360deg); } /* End rotation */
+        }
+        .dialog-entry {
+            background-color: #ffffff; /* White background for dialog entries */
+            border: 1px solid #e2e8f0; /* Light border */
+            border-radius: 0.5rem; /* Rounded corners */
+            padding: 1rem; /* Padding inside */
+            margin-bottom: 0.75rem; /* Space between dialog entries */
+            position: relative; /* For absolute positioning of remove button */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-extrabold text-center text-gray-900 mb-8">Veo 3 Prompt Generator</h1>
+
+        <!-- Section 1: General Video Information -->
+        <div class="mb-8 p-6 bg-blue-50 rounded-xl shadow-md">
+            <h2 class="section-title text-blue-800">1. Informasi Umum Video</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="input-group">
+                    <label for="videoType">JENIS VIDEO:</label>
+                    <select id="videoType" class="form-select rounded-lg">
+                        <option value="Video Promosi Produk">Video Promosi Produk</option>
+                        <option value="Cuplikan Film Pendek">Cuplikan Film Pendek</option>
+                        <option value="Animasi Edukasi">Animasi Edukasi</option>
+                        <option value="Vlog Perjalanan">Vlog Perjalanan</option>
+                        <option value="Iklan Layanan Masyarakat">Iklan Layanan Masyarakat</option>
+                        <option value="Video Musik">Video Musik</option>
+                        <option value="Tutorial">Tutorial</option>
+                        <option value="Lainnya">Lainnya (isi di bawah)</option>
+                    </select>
+                    <input type="text" id="videoTypeOther" class="mt-2 hidden form-input rounded-lg" placeholder="Jenis Video Lainnya">
+                </div>
+                <div class="input-group">
+                    <label for="duration">DURASI VIDEO:</label>
+                    <!-- Updated: Set default value to "8 detik" and make it read-only -->
+                    <input type="text" id="duration" value="8 detik" readonly class="form-input rounded-lg">
+                </div>
+                <div class="input-group">
+                    <label for="visualStyle">GAYA VISUAL KESELURUHAN:</label>
+                    <select id="visualStyle" class="form-select rounded-lg">
+                        <option value="Realistis">Realistis</option>
+                        <option value="Sinematik Hollywood">Sinematik Hollywood</option>
+                        <option value="Animasi 3D">Animasi 3D</option>
+                        <option value="Kartun 2D">Kartun 2D</option>
+                        <option value="Dokumenter Otentik">Dokumenter Otentik</option>
+                        <option value="Vintage">Vintage</option>
+                        <option value="Futuristik">Futuristik</option>
+                        <option value="Surealis">Surealis</option>
+                        <option value="Gaya Anime">Gaya Anime</option>
+                        <option value="Gaya Lukisan">Gaya Lukisan</option>
+                        <option value="Lainnya">Lainnya (isi di bawah)</option>
+                    </select>
+                    <input type="text" id="visualStyleOther" class="mt-2 hidden form-input rounded-lg" placeholder="Gaya Visual Lainnya">
+                </div>
+                <div class="input-group">
+                    <label for="audioStyle">GAYA AUDIO KESELURUHAN:</label>
+                    <select id="audioStyle" class="form-select rounded-lg">
+                        <option value="Realistis dengan suara ambient">Realistis dengan suara ambient</option>
+                        <option value="Dramatis dengan musik orkestra">Dramatis dengan musik orkestra</option>
+                        <option value="Ceria dengan musik pop">Ceria dengan musik pop</option>
+                        <option value="Minimalis dengan fokus dialog">Minimalis dengan fokus dialog</option>
+                        <option value="Tanpa musik latar">Tanpa musik latar</option>
+                        <option value="Elektronik Modern">Elektronik Modern</option>
+                        <option value="Akustik Lembut">Akustik Lembut</option>
+                        <option value="Lainnya">Lainnya (isi di bawah)</option>
+                    </select>
+                    <input type="text" id="audioStyleOther" class="mt-2 hidden form-input rounded-lg" placeholder="Gaya Audio Lainnya">
+                </div>
+                <div class="input-group">
+                    <label for="dialogLanguage">BAHASA DIALOG KESELURUHAN:</label>
+                    <select id="dialogLanguage" class="form-select rounded-lg">
+                        <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                        <option value="English (US)">English (US)</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Korean">Korean</option>
+                        <option value="Mandarin">Mandarin</option>
+                        <option value="Lainnya">Lainnya (isi di bawah)</option>
+                    </select>
+                    <input type="text" id="dialogLanguageOther" class="mt-2 hidden form-input rounded-lg" placeholder="Bahasa Lainnya">
+                </div>
+                <div class="input-group">
+                    <label for="aspectRatio">ASPEK RASIO:</label>
+                    <!-- Updated: Lock to 16:9 (Horizontal) only -->
+                    <select id="aspectRatio" class="form-select rounded-lg">
+                        <option value="16:9 (Horizontal)">16:9 (Horizontal)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="resolution">RESOLUSI (Opsional):</label>
+                    <input type="text" id="resolution" placeholder="Contoh: 1080p, 4K" class="form-input rounded-lg">
+                </div>
+                <div class="input-group md:col-span-2">
+                    <label for="references">REFERENSI (Opsional):</label>
+                    <textarea id="references" rows="3" placeholder="Sebutkan film, video, gaya sutradara, atau seniman sebagai referensi. Contoh: Visual mirip 'Ada Apa Dengan Cinta?', tone seperti video musik 'Coldplay - Fix You'." class="form-textarea rounded-lg"></textarea>
+                </div>
+                <div class="input-group md:col-span-2">
+                    <label for="notesForAI">CATATAN PENTING UNTUK AI (Opsional):</label>
+                    <textarea id="notesForAI" rows="3" placeholder="Berikan instruksi umum yang berlaku untuk seluruh video, misalnya tentang konsistensi karakter atau kualitas dialog. Contoh: 'Pastikan karakter [Nama Karakter] konsisten di setiap adegan. Semua dialog harus dalam Bahasa Indonesia yang fasih dan alami.'" class="form-textarea rounded-lg"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Main Character Profile -->
+        <div class="mb-8 p-6 bg-green-50 rounded-xl shadow-md">
+            <h2 class="section-title text-green-800">2. Profil Karakter Utama (untuk Konsistensi)</h2>
+            <div id="charactersContainer">
+                <!-- Character 1 Template - dynamically added/removed by JS -->
+                <div class="character-card" data-character-id="1">
+                    <button type="button" class="remove-btn">X</button>
+                    <h3 class="font-semibold text-lg mb-4 text-gray-700">Karakter 1</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label>Nama Karakter:</label>
+                            <input type="text" class="character-name form-input rounded-lg" placeholder="Contoh: Budi">
+                        </div>
+                        <div class="input-group">
+                            <label>Usia & Jenis Kelamin:</label>
+                            <input type="text" class="character-age-gender form-input rounded-lg" placeholder="Contoh: Pria, sekitar 30 tahun">
+                        </div>
+                        <div class="input-group md:col-span-2">
+                            <label>Ciri Fisik Utama:</label>
+                            <textarea rows="2" class="character-physical form-textarea rounded-lg" placeholder="Contoh: Rambut hitam pendek berombak, mata cokelat gelap, hidung mancung, kulit sawo matang, tinggi sedang"></textarea>
+                        </div>
+                        <div class="input-group md:col-span-2">
+                            <label>Pakaian & Aksesori Khas (Konsisten):</label>
+                            <textarea rows="2" class="character-outfit form-textarea rounded-lg" placeholder="Contoh: Selalu mengenakan kemeja biru muda, celana chino krem, dan jam tangan kulit cokelat di tangan kiri."></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label>Sikap/Postur Khas:</label>
+                            <input type="text" class="character-posture form-input rounded-lg" placeholder="Contoh: Perawakan tegak, sering menyilangkan tangan di dada, senyum tipis">
+                        </div>
+                        <div class="input-group">
+                            <label>Ekspresi Wajah Khas:</label>
+                            <input type="text" class="character-expression form-input rounded-lg" placeholder="Contoh: Ekspresi serius tapi kadang tersenyum hangat, sedikit kerutan di dahi saat berpikir.">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="addCharacterBtn" class="btn btn-secondary mt-4 rounded-lg">+ Tambah Karakter</button>
+        </div>
+
+        <!-- Section 3: Scene Details -->
+        <div class="mb-8 p-6 bg-yellow-50 rounded-xl shadow-md">
+            <h2 class="section-title text-yellow-800">3. Detail Adegan</h2>
+            <div id="scenesContainer">
+                <!-- Scene 1 Template - dynamically added/removed by JS -->
+                <div class="scene-card" data-scene-id="1">
+                    <button type="button" class="remove-btn">X</button>
+                    <h3 class="font-semibold text-lg mb-4 text-gray-700">Adegan 1</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-group md:col-span-2">
+                            <label>Judul Adegan Singkat:</label>
+                            <input type="text" class="scene-title form-input rounded-lg" placeholder="Contoh: Pagi di Dapur">
+                        </div>
+                        <div class="input-group md:col-span-2">
+                            <label>LOKASI/LATAR:</label>
+                            <textarea rows="2" class="scene-location form-textarea rounded-lg" placeholder="Deskripsi detail lokasi adegan ini. Contoh: Dapur modern minimalis dengan peralatan stainless steel, cahaya pagi masuk dari jendela besar."></textarea>
+                        </div>
+                        <div class="input-group md:col-span-2">
+                            <label>SUBJEK UTAMA & TINDAKAN:</label>
+                            <textarea rows="2" class="scene-subject-action form-textarea rounded-lg" placeholder="Siapa yang menjadi fokus, apa yang mereka lakukan, bagaimana penampilan mereka di adegan ini - merujuk ke Profil Karakter. Contoh: Budi [karakter yang sama dari profil], sedang membuat kopi dengan mesin espresso. Gerakannya cekatan dan rutin."></textarea>
+                        </div>
+                        
+                        <!-- DIALOG SECTION -->
+                        <div class="input-group md:col-span-2">
+                            <label>DIALOG:</label>
+                            <div class="dialogs-container">
+                                <div class="dialog-entry">
+                                    <button type="button" class="remove-btn-small">X</button>
+                                    <label class="block text-sm font-medium text-gray-600">Karakter:</label>
+                                    <select class="dialog-character form-select mb-1 rounded-lg">
+                                        <option value="">Pilih Karakter</option>
+                                    </select>
+                                    <label class="block text-sm font-medium text-gray-600">Dialog:</label>
+                                    <textarea rows="1" class="dialog-text form-textarea rounded-lg" placeholder="Teks dialog. Contoh: 'Selamat pagi, kopi hari ini terasa sempurna!' [dengan nada puas]"></textarea>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm mt-2 add-dialog-btn rounded-lg">+ Tambah Dialog</button>
+                        </div>
+                        <!-- END DIALOG SECTION -->
+
+                        <div class="input-group md:col-span-2">
+                            <label>SUBJEK PENDUKUNG (Opsional):</label>
+                            <textarea rows="2" class="scene-supporting-subject form-textarea rounded-lg" placeholder="Karakter lain yang ada di adegan tapi bukan fokus utama. Contoh: Seekor kucing oranye tidur di sofa."></textarea>
+                        </div>
+                        
+                        <!-- DETAIL VISUAL TAMBAHAN SECTION -->
+                        <div class="input-group md:col-span-2">
+                            <label>DETAIL VISUAL TAMBAHAN:</label>
+                            <textarea class="scene-visual-details form-textarea rounded-lg" rows="2" placeholder="Elemen visual spesifik: pencahayaan, warna dominan, objek pendukung, tekstur. Contoh: Uap mengepul dari cangkir kopi. Buah-buahan segar di meja."></textarea>
+                        </div>
+                        <!-- END DETAIL VISUAL TAMBAHAN SECTION -->
+
+                        <div class="input-group">
+                            <label>EMOSI/SUASANA:</label>
+                            <input type="text" class="scene-emotion-mood form-input rounded-lg" placeholder="Nuansa emosional atau atmosfer yang ingin disampaikan adegan ini. Contoh: Tenang, nyaman, damai, memulai hari dengan positif.">
+                        </div>
+                        
+                        <!-- CAMERA MOVEMENT SECTION -->
+                        <div class="input-group">
+                            <label>GERAKAN KAMERA:</label>
+                            <select class="scene-camera-movement form-select mb-1 rounded-lg">
+                                <option value="">Pilih Gerakan Kamera</option>
+                                <option value="Pan">Pan (Geser Horizontal)</option>
+                                <option value="Tilt">Tilt (Geser Vertikal)</option>
+                                <option value="Zoom In">Zoom In</option>
+                                <option value="Zoom Out">Zoom Out</option>
+                                <option value="Dolly In">Dolly In (Maju ke Subjek)</option>
+                                <option value="Dolly Out">Dolly Out (Mundur dari Subjek)</option>
+                                <option value="Track Left">Track Left (Mengikuti ke Kiri)</option>
+                                <option value="Track Right">Track Right (Mengikuti ke Kanan)</option>
+                                <option value="Crane/Boom Up">Crane/Boom Up (Naik)</option>
+                                <option value="Crane/Boom Down">Crane/Boom Down (Turun)</option>
+                                <option value="Handheld">Handheld (Goyangan Alami)</option>
+                                <option value="Stabilized">Stabilized (Sangat Halus)</option>
+                                <option value="POV (Point of View)">POV (Sudut Pandang Karakter)</option>
+                                <option value="Arc/Orbit">Arc/Orbit (Mengelilingi Subjek)</option>
+                                <option value="Rack Focus">Rack Focus (Perubahan Fokus)</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                            <input type="text" class="scene-camera-movement-other form-input mt-2 hidden rounded-lg" placeholder="Deskripsi Gerakan Kamera Lainnya">
+                        </div>
+                        <!-- END CAMERA MOVEMENT SECTION -->
+
+                        <div class="input-group md:col-span-2">
+                            <label>EFEK TAMBAHAN (Opsional):</label>
+                            <input type="text" class="scene-additional-effects form-input rounded-lg" placeholder="Efek visual atau transisi khusus untuk adegan ini, seperti slow motion, time-lapse, glitch effect, transisi fade. Contoh: Transisi cross-dissolve ke adegan berikutnya.">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="addSceneBtn" class="btn btn-secondary mt-4 rounded-lg">+ Tambah Adegan</button>
+        </div>
+
+        <div class="text-center mt-8">
+            <button type="button" id="generatePromptBtn" class="btn btn-primary text-xl px-8 py-3 rounded-lg">
+                Generate Prompt
+                <span id="loadingSpinner" class="loading-spinner hidden"></span>
+            </button>
+        </div>
+
+        <!-- Prompt Results Section -->
+        <div class="mt-8 p-6 bg-gray-100 rounded-xl shadow-inner">
+            <h2 class="section-title text-gray-800">Hasil Prompt (Bahasa Indonesia)</h2>
+            <textarea id="outputPromptId" rows="15" class="w-full p-4 border border-gray-300 rounded-lg bg-gray-50 font-mono text-sm" readonly placeholder="Prompt Bahasa Indonesia akan muncul di sini..."></textarea>
+            <button type="button" id="copyIdBtn" class="btn btn-secondary mt-4 w-full rounded-lg">Salin ke Clipboard (ID)</button>
+        </div>
+
+        <div class="mt-8 p-6 bg-gray-100 rounded-xl shadow-inner">
+            <h2 class="section-title text-gray-800">Hasil Prompt (English)</h2>
+            <textarea id="outputPromptEn" rows="15" class="w-full p-4 border border-gray-300 rounded-lg bg-gray-50 font-mono text-sm" readonly placeholder="English prompt will appear here..."></textarea>
+            <button type="button" id="copyEnBtn" class="btn btn-secondary mt-4 w-full rounded-lg">Salin ke Clipboard (EN)</button>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="text-center py-6 mt-8 bg-gray-800 text-gray-300 text-sm rounded-t-lg shadow-lg">
+        <p>&copy; 2024 Inisial Aja. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Global counters for character and scene IDs
+        let characterCount = 1;
+        let sceneCount = 1;
+
+        /**
+         * Sets up event listeners for "Other" options in select elements.
+         * When "Lainnya" (Other) is selected, a corresponding text input becomes visible.
+         * @param {HTMLSelectElement} selectElement - The select element.
+         * @param {HTMLInputElement} inputElement - The associated text input for "Other".
+         */
+        function setupOtherOption(selectElement, inputElement) {
+            selectElement.addEventListener('change', () => {
+                if (selectElement.value === 'Lainnya') {
+                    inputElement.classList.remove('hidden');
+                } else {
+                    inputElement.classList.add('hidden');
+                    inputElement.value = ''; // Clear value when hidden
+                }
+            });
+        }
+
+        /**
+         * Gathers all character names from the character profile section.
+         * @returns {string[]} An array of character names.
+         */
+        function getCharacterNames() {
+            const characterNameInputs = document.querySelectorAll('#charactersContainer .character-name');
+            const names = [];
+            characterNameInputs.forEach(input => {
+                const name = input.value.trim();
+                if (name) {
+                    names.push(name);
+                }
+            });
+            return names;
+        }
+
+        /**
+         * Populates a given character dropdown (select element) with current character names.
+         * Preserves the currently selected value if the character still exists.
+         * @param {HTMLSelectElement} selectElement - The select element to populate.
+         */
+        function populateCharacterDropdown(selectElement) {
+            const currentSelectedValue = selectElement.value; // Store current selection
+            selectElement.innerHTML = ''; // Clear existing options
+            
+            // Add default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "Pilih Karakter";
+            selectElement.appendChild(defaultOption);
+
+            const characterNames = getCharacterNames();
+            characterNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                selectElement.appendChild(option);
+            });
+
+            // Restore previous selection if it still exists
+            if (characterNames.includes(currentSelectedValue)) {
+                selectElement.value = currentSelectedValue;
+            } else {
+                selectElement.value = ""; // Reset if character was removed or name changed
+            }
+        }
+
+        /**
+         * Refreshes all character dropdowns across all scenes.
+         * This is called when a character is added, removed, or their name is changed.
+         */
+        function refreshAllDialogCharacterDropdowns() {
+            const allDialogCharacterDropdowns = document.querySelectorAll('.dialog-character');
+            allDialogCharacterDropdowns.forEach(dropdown => {
+                populateCharacterDropdown(dropdown);
+            });
+        }
+
+        /**
+         * Adds a new character profile card to the Characters section.
+         */
+        function addCharacter() {
+            characterCount++;
+            const charactersContainer = document.getElementById('charactersContainer');
+            const newCharacterCard = document.createElement('div');
+            newCharacterCard.className = 'character-card';
+            newCharacterCard.setAttribute('data-character-id', characterCount);
+            newCharacterCard.innerHTML = `
+                <button type="button" class="remove-btn">X</button>
+                <h3 class="font-semibold text-lg mb-4 text-gray-700">Karakter ${characterCount}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label>Nama Karakter:</label>
+                        <input type="text" class="character-name form-input rounded-lg" placeholder="Contoh: Budi">
+                    </div>
+                    <div class="input-group">
+                        <label>Usia & Jenis Kelamin:</label>
+                        <input type="text" class="character-age-gender form-input rounded-lg" placeholder="Contoh: Pria, sekitar 30 tahun">
+                    </div>
+                    <div class="input-group md:col-span-2">
+                        <label>Ciri Fisik Utama:</label>
+                        <textarea rows="2" class="character-physical form-textarea rounded-lg" placeholder="Contoh: Rambut hitam pendek berombak, mata cokelat gelap, hidung mancung, kulit sawo matang, tinggi sedang"></textarea>
+                    </div>
+                    <div class="input-group md:col-span-2">
+                        <label>Pakaian & Aksesori Khas (Konsisten):</label>
+                        <textarea rows="2" class="character-outfit form-textarea rounded-lg" placeholder="Contoh: Selalu mengenakan kemeja biru muda, celana chino krem, dan jam tangan kulit cokelat di tangan kiri."></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Sikap/Postur Khas:</label>
+                        <input type="text" class="character-posture form-input rounded-lg" placeholder="Contoh: Perawakan tegak, sering menyilangkan tangan di dada, senyum tipis">
+                    </div>
+                    <div class="input-group">
+                        <label>Ekspresi Wajah Khas:</label>
+                        <input type="text" class="character-expression form-input rounded-lg" placeholder="Contoh: Ekspresi serius tapi kadang tersenyum hangat, sedikit kerutan di dahi saat berpikir.">
+                    </div>
+                </div>
+            `;
+            charactersContainer.appendChild(newCharacterCard);
+
+            // Attach event listeners for the newly added character card
+            newCharacterCard.querySelector('.remove-btn').addEventListener('click', (event) => removeCharacter(event.target));
+            newCharacterCard.querySelector('.character-name').addEventListener('input', refreshAllDialogCharacterDropdowns);
+
+            refreshAllDialogCharacterDropdowns(); // Refresh dropdowns after adding a character
+        }
+
+        /**
+         * Removes a character profile card from the Characters section.
+         * Re-indexes the remaining character cards and refreshes dialog dropdowns.
+         * @param {HTMLButtonElement} button - The remove button element clicked.
+         */
+        function removeCharacter(button) {
+            const characterCard = button.closest('.character-card');
+            characterCard.remove();
+            // Re-index character titles and data-character-id attributes
+            const characterCards = document.querySelectorAll('#charactersContainer .character-card');
+            characterCards.forEach((card, index) => {
+                card.querySelector('h3').textContent = `Karakter ${index + 1}`;
+                card.setAttribute('data-character-id', index + 1);
+            });
+            characterCount = characterCards.length; // Update total count
+            refreshAllDialogCharacterDropdowns(); // Refresh dropdowns after removing a character
+        }
+
+        /**
+         * Adds a new scene detail card to the Scenes section.
+         */
+        function addScene() {
+            sceneCount++;
+            const scenesContainer = document.getElementById('scenesContainer');
+            const newSceneCard = document.createElement('div');
+            newSceneCard.className = 'scene-card';
+            newSceneCard.setAttribute('data-scene-id', sceneCount);
+            newSceneCard.innerHTML = `
+                <button type="button" class="remove-btn">X</button>
+                <h3 class="font-semibold text-lg mb-4 text-gray-700">Adegan ${sceneCount}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="input-group md:col-span-2">
+                        <label>Judul Adegan Singkat:</label>
+                        <input type="text" class="scene-title form-input rounded-lg" placeholder="Contoh: Pagi di Dapur">
+                    </div>
+                    <div class="input-group md:col-span-2">
+                        <label>LOKASI/LATAR:</label>
+                        <textarea rows="2" class="scene-location form-textarea rounded-lg" placeholder="Deskripsi detail lokasi adegan ini. Contoh: Dapur modern minimalis dengan peralatan stainless steel, cahaya pagi masuk dari jendela besar."></textarea>
+                    </div>
+                    <div class="input-group md:col-span-2">
+                        <label>SUBJEK UTAMA & TINDAKAN:</label>
+                        <textarea rows="2" class="scene-subject-action form-textarea rounded-lg" placeholder="Siapa yang menjadi fokus, apa yang mereka lakukan, bagaimana penampilan mereka di adegan ini - merujuk ke Profil Karakter. Contoh: Budi [karakter yang sama dari profil], sedang membuat kopi dengan mesin espresso. Gerakannya cekatan dan rutin."></textarea>
+                    </div>
+                    
+                    <div class="input-group md:col-span-2">
+                        <label>DIALOG:</label>
+                        <div class="dialogs-container">
+                            <!-- Initial dialog entry for new scene -->
+                            <div class="dialog-entry">
+                                <button type="button" class="remove-btn-small">X</button>
+                                <label class="block text-sm font-medium text-gray-600">Karakter:</label>
+                                <select class="dialog-character form-select mb-1 rounded-lg">
+                                    <option value="">Pilih Karakter</option>
+                                </select>
+                                <label class="block text-sm font-medium text-gray-600">Dialog:</label>
+                                <textarea rows="1" class="dialog-text form-textarea rounded-lg" placeholder="Teks dialog. Contoh: 'Selamat pagi, kopi hari ini terasa sempurna!' [dengan nada puas]"></textarea>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm mt-2 add-dialog-btn rounded-lg">+ Tambah Dialog</button>
+                    </div>
+
+                    <div class="input-group md:col-span-2">
+                        <label>SUBJEK PENDUKUNG (Opsional):</label>
+                        <textarea rows="2" class="scene-supporting-subject form-textarea rounded-lg" placeholder="Karakter lain yang ada di adegan tapi bukan fokus utama. Contoh: Seekor kucing oranye tidur di sofa."></textarea>
+                    </div>
+                    
+                    <div class="input-group md:col-span-2">
+                        <label>DETAIL VISUAL TAMBAHAN:</label>
+                        <textarea class="scene-visual-details form-textarea rounded-lg" rows="2" placeholder="Elemen visual spesifik: pencahayaan, warna dominan, objek pendukung, tekstur. Contoh: Uap mengepul dari cangkir kopi. Buah-buahan segar di meja."></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label>EMOSI/SUASANA:</label>
+                        <input type="text" class="scene-emotion-mood form-input rounded-lg" placeholder="Nuansa emosional atau atmosfer yang ingin disampaikan adegan ini. Contoh: Tenang, nyaman, damai, memulai hari dengan positif.">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>GERAKAN KAMERA:</label>
+                        <select class="scene-camera-movement form-select mb-1 rounded-lg">
+                            <option value="">Pilih Gerakan Kamera</option>
+                            <option value="Pan">Pan (Geser Horizontal)</option>
+                            <option value="Tilt">Tilt (Geser Vertikal)</option>
+                            <option value="Zoom In">Zoom In</option>
+                            <option value="Zoom Out">Zoom Out</option>
+                            <option value="Dolly In">Dolly In (Maju ke Subjek)</option>
+                            <option value="Dolly Out">Dolly Out (Mundur dari Subjek)</option>
+                            <option value="Track Left">Track Left (Mengikuti ke Kiri)</option>
+                            <option value="Track Right">Track Right (Mengikuti ke Kanan)</option>
+                            <option value="Crane/Boom Up">Crane/Boom Up (Naik)</option>
+                            <option value="Crane/Boom Down">Crane/Boom Down (Turun)</option>
+                            <option value="Handheld">Handheld (Goyangan Alami)</option>
+                            <option value="Stabilized">Stabilized (Sangat Halus)</option>
+                            <option value="POV (Point of View)">POV (Sudut Pandang Karakter)</option>
+                            <option value="Arc/Orbit">Arc/Orbit (Mengelilingi Subjek)</option>
+                            <option value="Rack Focus">Rack Focus (Perubahan Fokus)</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                        <input type="text" class="scene-camera-movement-other form-input mt-2 hidden rounded-lg" placeholder="Deskripsi Gerakan Kamera Lainnya">
+                    </div>
+
+                    <div class="input-group md:col-span-2">
+                        <label>EFEK TAMBAHAN (Opsional):</label>
+                        <input type="text" class="scene-additional-effects form-input rounded-lg" placeholder="Efek visual atau transisi khusus untuk adegan ini, seperti slow motion, time-lapse, glitch effect, transisi fade. Contoh: Transisi cross-dissolve ke adegan berikutnya.">
+                    </div>
+                </div>
+            `;
+            scenesContainer.appendChild(newSceneCard);
+
+            // Attach event listeners for the newly added scene card
+            newSceneCard.querySelector('.remove-btn').addEventListener('click', (event) => removeScene(event.target));
+            
+            const newDialogSelect = newSceneCard.querySelector('.dialog-character');
+            if (newDialogSelect) {
+                populateCharacterDropdown(newDialogSelect);
+            }
+            newSceneCard.querySelector('.add-dialog-btn').addEventListener('click', (event) => addDialog(event.target));
+            
+            const cameraMovementSelect = newSceneCard.querySelector('.scene-camera-movement');
+            const cameraMovementOtherInput = newSceneCard.querySelector('.scene-camera-movement-other');
+            setupOtherOption(cameraMovementSelect, cameraMovementOtherInput);
+
+            // Also attach listener for the initial dialog's remove button in the new scene
+            const initialDialogRemoveBtn = newSceneCard.querySelector('.dialog-entry .remove-btn-small');
+            if (initialDialogRemoveBtn) {
+                initialDialogRemoveBtn.addEventListener('click', (event) => removeDialog(event.target));
+            }
+        }
+
+        /**
+         * Removes a scene detail card from the Scenes section.
+         * Re-indexes the remaining scene cards.
+         * @param {HTMLButtonElement} button - The remove button element clicked.
+         */
+        function removeScene(button) {
+            const sceneCard = button.closest('.scene-card');
+            sceneCard.remove();
+            // Re-index scene titles and data-scene-id attributes
+            const sceneCards = document.querySelectorAll('#scenesContainer .scene-card');
+            sceneCards.forEach((card, index) => {
+                card.querySelector('h3').textContent = `Adegan ${index + 1}`;
+                card.setAttribute('data-scene-id', index + 1);
+            });
+            sceneCount = sceneCards.length; // Update total count
+        }
+
+        /**
+         * Adds a new dialog entry to a specific scene.
+         * @param {HTMLButtonElement} buttonElement - The "+ Tambah Dialog" button clicked.
+         */
+        function addDialog(buttonElement) {
+            const dialogsContainer = buttonElement.previousElementSibling; // Get the .dialogs-container
+            const newDialogEntry = document.createElement('div');
+            newDialogEntry.className = 'dialog-entry';
+            newDialogEntry.innerHTML = `
+                <button type="button" class="remove-btn-small">X</button>
+                <label class="block text-sm font-medium text-gray-600">Karakter:</label>
+                <select class="dialog-character form-select mb-1 rounded-lg">
+                    <option value="">Pilih Karakter</option>
+                </select>
+                <label class="block text-sm font-medium text-gray-600">Dialog:</label>
+                <textarea rows="1" class="dialog-text form-textarea rounded-lg" placeholder="Teks dialog. Contoh: 'Selamat pagi, kopi hari ini terasa sempurna!' [dengan nada puas]"></textarea>
+            `;
+            dialogsContainer.appendChild(newDialogEntry);
+
+            // Attach event listeners for the newly added dialog entry
+            newDialogEntry.querySelector('.remove-btn-small').addEventListener('click', (event) => removeDialog(event.target));
+            
+            const newDialogSelect = newDialogEntry.querySelector('.dialog-character');
+            if (newDialogSelect) {
+                populateCharacterDropdown(newDialogSelect);
+            }
+        }
+
+        /**
+         * Removes a dialog entry from a scene.
+         * @param {HTMLButtonElement} button - The remove button element clicked.
+         */
+        function removeDialog(button) {
+            const dialogEntry = button.closest('.dialog-entry');
+            dialogEntry.remove();
+        }
+
+        /**
+         * Generates the prompt based on user input and translates it to English using Gemini API.
+         */
+        async function generatePrompt() {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            loadingSpinner.classList.remove('hidden'); // Show loading spinner
+
+            let promptId = ""; // Initialize Indonesian prompt string
+
+            // --- Bagian 1: Informasi Umum Video ---
+            promptId += "Bagian 1: Informasi Umum Video\n";
+            const videoType = document.getElementById('videoType').value === 'Lainnya' ? document.getElementById('videoTypeOther').value.trim() : document.getElementById('videoType').value.trim();
+            const duration = document.getElementById('duration').value.trim();
+            const visualStyle = document.getElementById('visualStyle').value === 'Lainnya' ? document.getElementById('visualStyleOther').value.trim() : document.getElementById('visualStyle').value.trim();
+            const audioStyle = document.getElementById('audioStyle').value === 'Lainnya' ? document.getElementById('audioStyleOther').value.trim() : document.getElementById('audioStyle').value.trim();
+            const dialogLanguage = document.getElementById('dialogLanguage').value === 'Lainnya' ? document.getElementById('dialogLanguageOther').value.trim() : document.getElementById('dialogLanguage').value.trim();
+            const aspectRatio = document.getElementById('aspectRatio').value.trim();
+            const resolution = document.getElementById('resolution').value.trim();
+            const references = document.getElementById('references').value.trim();
+            const notesForAI = document.getElementById('notesForAI').value.trim();
+
+            promptId += `[JENIS VIDEO]: ${videoType}\n`;
+            if (duration) promptId += `[DURASI VIDEO]: ${duration}\n`;
+            promptId += `[GAYA VISUAL KESELURUHAN]: ${visualStyle}\n`;
+            promptId += `[GAYA AUDIO KESELURUHAN]: ${audioStyle}\n`;
+            promptId += `[BAHASA DIALOG KESELURUHAN]: ${dialogLanguage}\n`;
+            promptId += `[ASPEK RASIO]: ${aspectRatio}\n`;
+            if (resolution) promptId += `[RESOLUSI]: ${resolution}\n`;
+            if (references) promptId += `[REFERENSI]: ${references}\n`;
+            if (notesForAI) promptId += `[CATATAN PENTING UNTUK AI]: ${notesForAI}\n`;
+            promptId += "\n";
+
+            // --- Bagian 2: Profil Karakter Utama ---
+            promptId += "Bagian 2: Profil Karakter Utama (untuk Konsistensi)\n";
+            const characterCards = document.querySelectorAll('#charactersContainer .character-card');
+            characterCards.forEach((card, index) => {
+                const name = card.querySelector('.character-name').value.trim();
+                const ageGender = card.querySelector('.character-age-gender').value.trim();
+                const physical = card.querySelector('.character-physical').value.trim();
+                const outfit = card.querySelector('.character-outfit').value.trim();
+                const posture = card.querySelector('.character-posture').value.trim();
+                const expression = card.querySelector('.character-expression').value.trim();
+
+                if (name) { // Only add character details if a name is provided
+                    promptId += `Karakter ${index + 1}: ${name}\n`;
+                    if (ageGender) promptId += `Usia & Jenis Kelamin: ${ageGender}\n`;
+                    if (physical) promptId += `Ciri Fisik Utama: ${physical}\n`;
+                    if (outfit) promptId += `Pakaian & Aksesori Khas (Konsisten): ${outfit}\n`;
+                    if (posture) promptId += `Sikap/Postur Khas: ${posture}\n`;
+                    if (expression) promptId += `Ekspresi Wajah Khas: ${expression}\n`;
+                    promptId += "\n";
+                }
+            });
+
+            // --- Bagian 3: Detail Adegan ---
+            promptId += "Bagian 3: Detail Adegan\n";
+            const sceneCards = document.querySelectorAll('#scenesContainer .scene-card');
+            sceneCards.forEach((card, index) => {
+                const title = card.querySelector('.scene-title').value.trim();
+                const location = card.querySelector('.scene-location').value.trim();
+                const subjectAction = card.querySelector('.scene-subject-action').value.trim();
+                const supportingSubject = card.querySelector('.scene-supporting-subject').value.trim();
+                // Corrected: Use class selector for visualDetails
+                const visualDetails = card.querySelector('.scene-visual-details').value.trim(); 
+                const emotionMood = card.querySelector('.scene-emotion-mood').value.trim();
+                
+                // Get camera movement from dropdown or other input
+                let cameraMovement = card.querySelector('.scene-camera-movement').value.trim();
+                const cameraMovementOther = card.querySelector('.scene-camera-movement-other').value.trim();
+                if (cameraMovement === 'Lainnya' && cameraMovementOther) {
+                    cameraMovement = cameraMovementOther;
+                } else if (cameraMovement === 'Lainnya' && !cameraMovementOther) {
+                    cameraMovement = ''; // Clear if "Lainnya" selected but no custom text
+                }
+
+                const additionalEffects = card.querySelector('.scene-additional-effects').value.trim();
+
+                if (title) { // Only add scene if title is provided
+                    promptId += `[ADEGAN]: ${title}\n`;
+                    if (location) promptId += `[LOKASI/LATAR]: ${location}\n`;
+                    if (subjectAction) promptId += `[SUBJEK UTAMA & TINDAKAN]: ${subjectAction}\n`;
+                    
+                    // Collect multiple dialogs for the current scene
+                    const dialogEntries = card.querySelectorAll('.dialog-entry');
+                    let sceneDialogs = [];
+                    dialogEntries.forEach(dialogEntry => {
+                        const charName = dialogEntry.querySelector('.dialog-character').value.trim(); // Get value from select
+                        const dialogText = dialogEntry.querySelector('.dialog-text').value.trim();
+                        if (charName && dialogText) { // Only add if character AND dialog text exists
+                            sceneDialogs.push(`${charName}: "${dialogText}"`);
+                        } else if (dialogText && !charName) { // If dialog exists but no character selected
+                            sceneDialogs.push(`[Karakter Tidak Terpilih]: "${dialogText}"`); // Add a placeholder
+                        }
+                    });
+                    if (sceneDialogs.length > 0) {
+                        promptId += `[DIALOG]:\n${sceneDialogs.map(d => `  - ${d}`).join('\n')}\n`;
+                    }
+
+                    if (supportingSubject) promptId += `[SUBJEK PENDUKUNG (Opsional)]: ${supportingSubject}\n`;
+                    if (visualDetails) promptId += `[DETAIL VISUAL TAMBAHAN]: ${visualDetails}\n`;
+                    if (emotionMood) promptId += `[EMOSI/SUASANA]: ${emotionMood}\n`;
+                    if (cameraMovement) promptId += `[GERAKAN KAMERA]: ${cameraMovement}\n`; // Use the selected/custom value
+                    if (additionalEffects) promptId += `[EFEK TAMBAHAN (Opsional)]: ${additionalEffects}\n`;
+                    promptId += "\n";
+                }
+            });
+
+            // Display the generated Indonesian prompt
+            document.getElementById('outputPromptId').value = promptId.trim();
+
+            // Translate to English using Gemini API
+            let promptEn = "";
+            try {
+                let chatHistory = [];
+                // Construct the prompt for the LLM to translate, emphasizing format preservation
+                chatHistory.push({ role: "user", parts: [{ text: `Translate the following Indonesian text to English, maintaining the exact format and preserving the bracketed tags like [VIDEO TYPE], [DURATION], [VISUAL STYLE], [AUDIO STYLE], [DIALOG LANGUAGE], [ASPECT RATIO], [RESOLUTION], [REFERENCES], [IMPORTANT NOTES FOR AI], [SCENE], [LOCATION/BACKGROUND], [MAIN SUBJECT & ACTION], [DIALOG], [SUPPORTING SUBJECT (Optional)], [ADDITIONAL VISUAL DETAILS], [EMOTION/MOOD], [CAMERA MOVEMENT], [ADDITIONAL EFFECTS (Optional)]. Also, translate "Karakter" to "Character" and "Adegan" to "Scene".\n\n${promptId.trim()}` }] });
+                
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Leave this as-is. Canvas will provide the key.
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                // Make the API call
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                // Check for successful response and extract text
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    promptEn = result.candidates[0].content.parts[0].text;
+                } else {
+                    promptEn = "Error: Could not translate prompt to English. Unexpected API response structure.";
+                    console.error("Gemini API response structure unexpected:", result);
+                }
+            } catch (error) {
+                promptEn = `Error translating: ${error.message}. Please check your network connection or try again.`;
+                console.error("Error calling Gemini API:", error);
+            } finally {
+                // Display the translated English prompt
+                document.getElementById('outputPromptEn').value = promptEn.trim();
+                loadingSpinner.classList.add('hidden'); // Hide loading spinner
+            }
+        }
+
+        /**
+         * Copies the content of a specified textarea to the clipboard.
+         * Provides visual feedback to the user.
+         * @param {string} elementId - The ID of the textarea element to copy from.
+         * @param {HTMLButtonElement} buttonElement - The button element that triggered the copy.
+         */
+        function copyToClipboard(elementId, buttonElement) {
+            const outputPrompt = document.getElementById(elementId);
+            outputPrompt.select(); // Select the text in the textarea
+            document.execCommand('copy'); // Copy the selected text to clipboard
+            
+            // Provide visual feedback
+            const originalText = buttonElement.textContent;
+            buttonElement.textContent = 'Disalin!'; // Change button text to "Copied!"
+            setTimeout(() => {
+                buttonElement.textContent = originalText; // Revert button text after 2 seconds
+            }, 2000);
+        }
+
+        // --- Initialize all event listeners on DOMContentLoaded ---
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Setup "Other" options for static select elements
+                setupOtherOption(document.getElementById('videoType'), document.getElementById('videoTypeOther'));
+                setupOtherOption(document.getElementById('visualStyle'), document.getElementById('visualStyleOther'));
+                setupOtherOption(document.getElementById('audioStyle'), document.getElementById('audioStyleOther'));
+                setupOtherOption(document.getElementById('dialogLanguage'), document.getElementById('dialogLanguageOther'));
+
+                // Attach listeners for static buttons
+                document.getElementById('generatePromptBtn').addEventListener('click', generatePrompt);
+                document.getElementById('copyIdBtn').addEventListener('click', (event) => copyToClipboard('outputPromptId', event.target));
+                document.getElementById('copyEnBtn').addEventListener('click', (event) => copyToClipboard('outputPromptEn', event.target));
+                document.getElementById('addCharacterBtn').addEventListener('click', addCharacter);
+                document.getElementById('addSceneBtn').addEventListener('click', addScene);
+
+                // Attach listeners for initial character card elements
+                const initialCharacterCard = document.querySelector('#charactersContainer .character-card');
+                if (initialCharacterCard) {
+                    initialCharacterCard.querySelector('.remove-btn').addEventListener('click', (event) => removeCharacter(event.target));
+                    initialCharacterCard.querySelector('.character-name').addEventListener('input', refreshAllDialogCharacterDropdowns);
+                }
+
+                // Attach listeners for initial scene card elements
+                const initialSceneCard = document.querySelector('#scenesContainer .scene-card');
+                if (initialSceneCard) {
+                    initialSceneCard.querySelector('.remove-btn').addEventListener('click', (event) => removeScene(event.target));
+                    
+                    const initialSceneCameraSelect = initialSceneCard.querySelector('.scene-camera-movement');
+                    const initialSceneCameraOtherInput = initialSceneCard.querySelector('.scene-camera-movement-other');
+                    setupOtherOption(initialSceneCameraSelect, initialSceneCameraOtherInput);
+
+                    // Attach listener for the initial dialog's add button in the first scene
+                    initialSceneCard.querySelector('.add-dialog-btn').addEventListener('click', (event) => addDialog(event.target));
+                    
+                    // Attach listener for the initial dialog's remove button in the first scene
+                    const initialDialogRemoveBtn = initialSceneCard.querySelector('.dialog-entry .remove-btn-small');
+                    if (initialDialogRemoveBtn) {
+                        initialDialogRemoveBtn.addEventListener('click', (event) => removeDialog(event.target));
+                    }
+                }
+
+                // Initial population of dialog dropdowns for the first scene
+                refreshAllDialogCharacterDropdowns();
+
+            } catch (error) {
+                console.error("Error during DOMContentLoaded initialization:", error);
+                // You might want to display a user-friendly error message here
+            }
+        });
+    </script>
+</body>
+</html>
