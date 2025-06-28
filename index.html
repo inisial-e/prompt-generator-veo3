@@ -161,6 +161,12 @@
                         <option value="Iklan Layanan Masyarakat">Iklan Layanan Masyarakat</option>
                         <option value="Video Musik">Video Musik</option>
                         <option value="Tutorial">Tutorial</option>
+                        <option value="Berita/Laporan Jurnalistik">Berita/Laporan Jurnalistik</option>
+                        <option value="Video Dokumenter">Video Dokumenter</option>
+                        <option value="Video Komedi Sketsa">Video Komedi Sketsa</option>
+                        <option value="Ulasan Produk/Layanan">Ulasan Produk/Layanan</option>
+                        <option value="Video Gaming">Video Gaming</option>
+                        <option value="Video Inspirasi/Motivasi">Video Inspirasi/Motivasi</option>
                         <option value="Lainnya">Lainnya (isi di bawah)</option>
                     </select>
                     <input type="text" id="videoTypeOther" class="mt-2 hidden form-input rounded-lg" placeholder="Jenis Video Lainnya">
@@ -436,6 +442,7 @@
         /**
          * Refreshes all character dropdowns across all scenes.
          * This is called when a character is added, removed, or their name is changed.
+         * This is also called for the initial scene character dropdown.
          */
         function refreshAllDialogCharacterDropdowns() {
             const allDialogCharacterDropdowns = document.querySelectorAll('.dialog-character');
@@ -561,7 +568,6 @@
                         <label>DETAIL VISUAL TAMBAHAN:</label>
                         <textarea class="scene-visual-details form-textarea rounded-lg" rows="2" placeholder="Elemen visual spesifik: pencahayaan, warna dominan, objek pendukung, tekstur. Contoh: Uap mengepul dari cangkir kopi. Buah-buahan segar di meja."></textarea>
                     </div>
-
                     <div class="input-group">
                         <label>EMOSI/SUASANA:</label>
                         <input type="text" class="scene-emotion-mood form-input rounded-lg" placeholder="Nuansa emosional atau atmosfer yang ingin disampaikan adegan ini. Contoh: Tenang, nyaman, damai, memulai hari dengan positif.">
